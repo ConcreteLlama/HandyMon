@@ -1,0 +1,18 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "handymon-dev",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "port": 3001,
+      "autoPort": true
+    },
+    {
+      "name": "handymon-dev-secure",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev:secure"],
+      "port": 3001
+    }
+  ]
+}

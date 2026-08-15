@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HandyMon — Getting Started</title>
+<style>
+  :root {
+    --bg: #0d1117; --bg-elevated: #161b27; --border: #232936;
+    --text-primary: #e6edf3; --text-secondary: #9ba7b4; --text-dim: #6b7684;
+    --accent: #3b82f6; --accent-dim: rgba(59,130,246,0.12);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 2.5rem 1.5rem 4rem;
+    background: var(--bg); color: var(--text-primary);
+    font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    line-height: 1.55;
+  }
+  main { max-width: 640px; margin: 0 auto; }
+  h1 { font-size: 1.6rem; margin: 0 0 0.25rem; }
+  .tagline { color: var(--text-secondary); margin: 0 0 2rem; font-size: 0.95rem; }
+  h2 {
+    font-size: 0.78rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--accent); margin: 2.25rem 0 0.75rem;
+  }
+  section:first-of-type h2 { margin-top: 0; }
+  p { margin: 0 0 0.9rem; color: var(--text-secondary); }
+  code {
+    font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
+    background: var(--bg-elevated); border: 1px solid var(--border);
+    border-radius: 4px; padding: 0.1rem 0.4rem; color: var(--text-primary); font-size: 0.9em;
+  }
+  ol, ul { margin: 0 0 0.9rem; padding-left: 1.3rem; color: var(--text-secondary); }
+  li { margin-bottom: 0.4rem; }
+  .card {
+    background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 10px;
+    padding: 1rem 1.25rem; margin-bottom: 0.9rem;
+  }
+  .card strong { color: var(--text-primary); }
+  .pill {
+    display: inline-block; background: var(--accent-dim); color: var(--accent);
+    border-radius: 999px; padding: 0.15rem 0.6rem; font-size: 0.8rem; font-weight: 600;
+  }
+  footer { margin-top: 3rem; color: var(--text-dim); font-size: 0.8rem; }
+</style>
+</head>
+<body>
+<main>
+  <h1>HandyMon</h1>
+  <p class="tagline">A local-network web dashboard for controlling this PC — display, audio, fans, processes, and more — from a phone or any browser on the LAN.</p>
+
+  <section>
+    <h2>Opening the dashboard</h2>
+    <div class="card">
+      <p><strong>On this PC:</strong> open a browser and go to <code>http://localhost:44558</code> (or whichever port you chose during setup).</p>
+      <p><strong>From your phone or another device:</strong> right-click the HandyMon icon in the system tray (near the clock — click the <code>^</code> arrow if it's hidden) and choose <span class="pill">Pair new device</span>. Scan the QR code with your phone's camera to pair it.</p>
+    </div>
+    <p>HandyMon never leaves your local network — there's no cloud account and nothing is sent externally.</p>
+  </section>
+
+  <section>
+    <h2>The tray icon</h2>
+    <p>HandyMon runs in the background with an icon in the system tray. Left-click it (or right-click for the menu) for:</p>
+    <ul>
+      <li><strong>Open UI</strong> — opens the dashboard in your default browser</li>
+      <li><strong>Pair new device</strong> — shows a QR code for pairing a phone</li>
+      <li><strong>Open config folder</strong> — opens <code>%LOCALAPPDATA%\HandyMon</code>, where settings, paired devices, and logs live</li>
+      <li><strong>Quit</strong> — fully stops HandyMon</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Starting HandyMon</h2>
+    <p>HandyMon starts automatically at login (via a Windows Scheduled Task named <code>HandyMon</code>). If you didn't launch it right after installing, you don't need to log out and back in — use the <strong>Start HandyMon</strong> shortcut in the Start Menu instead.</p>
+  </section>
+
+  <section>
+    <h2>Stopping / uninstalling</h2>
+    <p>To stop HandyMon without uninstalling, use <span class="pill">Quit</span> from the tray icon menu. It'll start again at your next login.</p>
+    <p>To remove it entirely, use <strong>Uninstall HandyMon</strong> from the Start Menu, or Windows Settings → Apps.</p>
+  </section>
+
+  <section id="external-tools">
+    <h2>Setting up external tools</h2>
+    <p>Nothing below is required — HandyMon works without any of them, just with less info/control in that one area. Each is independent; set up only what you actually use. Every path here is configurable in <strong>Settings</strong> if your install location is different from the default.</p>
+
+    <div class="card" id="rtss">
+      <p><strong>RTSS (RivaTuner Statistics Server)</strong> <span class="pill">Framerate limiting + overlay</span></p>
+      <p>Search for "RivaTuner Statistics Server" (it's also bundled with MSI Afterburner, but installs standalone too). Default install location: <code>C:\Program Files (x86)\RivaTuner Statistics Server</code>.</p>
+      <ul>
+        <li>Set the install folder in <strong>Settings → Tool Paths → RTSS Installation Folder</strong>, then hit <strong>Test</strong>.</li>
+        <li>HandyMon starts/stops RTSS itself directly — no separate scheduled task or startup shortcut needed.</li>
+        <li>If the Gaming tab still says "RTSS not found" after installing, double-check the folder path — it should contain <code>RTSS.exe</code> directly, not a subfolder.</li>
+      </ul>
+    </div>
+
+    <div class="card" id="fancontrol">
+      <p><strong>FanControl</strong> <span class="pill">Fan profile switching</span></p>
+      <p>Download from the FanControl GitHub releases page. Default install location: <code>C:\Program Files (x86)\FanControl\</code>.</p>
+      <ul>
+        <li>Set the install folder in <strong>Settings → Tool Paths → FanControl Folder</strong>, then hit <strong>Test</strong>.</li>
+        <li>Important: FanControl needs to have been <strong>run at least once</strong>, with at least one profile configured inside FanControl itself, before HandyMon can list any profiles — it reads FanControl's own cache file, which doesn't exist until FanControl has started.</li>
+      </ul>
+    </div>
+
+    <div class="card" id="processlasso">
+      <p><strong>Process Lasso</strong> <span class="pill">Per-process CPU/priority rules</span></p>
+      <p>Download from bitsum.com. Default config location: <code>C:\ProgramData\ProcessLasso</code>.</p>
+      <ul>
+        <li>Set the folder in <strong>Settings → Tool Paths → Process Lasso Config Folder</strong>, then hit <strong>Test</strong>.</li>
+        <li>Like FanControl, it needs to have been installed <strong>and run at least once</strong> — its config file is only created after first launch.</li>
+        <li>If you just installed it or changed this path, restart HandyMon (Quit from the tray, then <strong>Start HandyMon</strong> from the Start Menu) — this path is only read once at startup.</li>
+      </ul>
+    </div>
+
+    <div class="card" id="lhm">
+      <p><strong>LibreHardwareMonitor + PawnIO</strong> <span class="pill">Temps, power, clocks, fan RPM</span></p>
+      <p>Performance usage (CPU/GPU %, RAM) works with no setup at all. Hardware sensors need LibreHardwareMonitor running with its web server enabled, plus the PawnIO driver for CPU/motherboard readings specifically.</p>
+      <ul>
+        <li><strong>If you installed with the "LibreHardwareMonitor + PawnIO driver" option checked</strong> (checked by default unless the installer found you already had LibreHardwareMonitor), you don't need to do anything — a dedicated copy is bundled, pre-configured, and starts automatically with HandyMon on its own port (separate from any LibreHardwareMonitor you might already run yourself, so the two don't collide). Just confirm it in <strong>Settings → Performance Monitoring</strong> with <strong>Test</strong>.</li>
+        <li><strong>Setting it up yourself instead</strong> — portable download from the LibreHardwareMonitor GitHub releases page (no installer, just unzip). Run it <strong>elevated</strong> (right-click → Run as administrator), then enable <strong>Options → Remote Web Server</strong>. Default port <code>8085</code>, configurable in <strong>Settings → Performance Monitoring</strong> (use <strong>Test</strong> to confirm HandyMon can reach it). It needs to stay running in the background — doesn't need to stay in focus, just running.</li>
+        <li><strong>PawnIO</strong> — required for CPU package and motherboard sensors specifically (temps/power/clocks); GPU/disk/network sensors work without it. Bundled automatically alongside LibreHardwareMonitor above, or download separately from pawnio.eu.</li>
+      </ul>
+    </div>
+
+    <div class="card" id="presentmon">
+      <p><strong>PresentMon</strong> <span class="pill">In-game FPS / frametimes</span></p>
+      <p>If you installed with the "PresentMon" option checked (checked by default unless the installer found CapFrameX already), a known-compatible copy is bundled and used automatically — nothing to configure. Otherwise, HandyMon auto-detects a PresentMon binary from CapFrameX or an RTSS install if you have either, or you can point <strong>Settings → Performance Monitoring → PresentMon Executable</strong> at one directly.</p>
+      <ul>
+        <li>FPS data only appears while a game is actually presenting frames — desktop idle correctly shows nothing.</li>
+        <li>If <strong>Test</strong> stays red, click <strong>Show diagnostic</strong> right below it — it runs a fresh probe and reports exactly what happened (crashed, timed out, or working) rather than a generic failure.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section>
+    <h2>Troubleshooting</h2>
+    <ul>
+      <li><strong>Windows Firewall prompt on first run</strong> — allow access on Private networks so other devices on your LAN can reach the dashboard.</li>
+      <li><strong>Can't reach it from your phone</strong> — make sure the phone is on the same Wi-Fi network as this PC, and that the firewall prompt above was allowed.</li>
+      <li><strong>Port already in use</strong> — you can change the port anytime by editing <code>port</code> in <code>%LOCALAPPDATA%\HandyMon\config.json</code>, then restarting HandyMon (Quit from the tray, then <strong>Start HandyMon</strong> from the Start Menu).</li>
+      <li><strong>Some features are greyed out</strong> — several features (fan control, Process Lasso, RTSS, LibreHardwareMonitor) rely on optional external tools. See <a href="#external-tools" style="color: var(--accent);">Setting up external tools</a> above.</li>
+    </ul>
+  </section>
+
+  <footer>HandyMon v0.1.0</footer>
+</main>
+</body>
+</html>

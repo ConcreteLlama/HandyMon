@@ -1,0 +1,71 @@
+:root {
+  --bg-base: #0d1117;
+  --bg-raised: #161b27;
+  --bg-elevated: #1c2333;
+  --border: #1e2533;
+  --border-hover: #2a3549;
+  --accent: #3b82f6;
+  --accent-dim: rgba(59, 130, 246, 0.08);
+  --accent-glow: rgba(59, 130, 246, 0.2);
+  --success: #34d399;
+  --success-dim: rgba(52, 211, 153, 0.1);
+  --error: #f87171;
+  --error-dim: rgba(248, 113, 113, 0.1);
+  --warning: #fbbf24;
+  --text-primary: #e2e8f0;
+  --text-secondary: #94a3b8;
+  --text-dim: #4b5568;
+  --nav-bg: #0a0e18;
+  --font-display: var(--font-rajdhani, 'Rajdhani'), sans-serif;
+  --font-body: var(--font-dm-sans, 'DM Sans'), system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains, 'JetBrains Mono'), monospace;
+  --sidebar-width: 220px;
+  --bottom-nav-height: 60px;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  color-scheme: dark;
+  height: 100%;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--bg-base);
+  color: var(--text-primary);
+  height: 100%;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+::-webkit-scrollbar {
+  width: 3px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-hover);
+  border-radius: 2px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-dim);
+}
+
+@keyframes pulse-border {
+  0%, 100% { border-color: rgba(59, 130, 246, 0.3); }
+  50% { border-color: rgba(59, 130, 246, 0.8); }
+}

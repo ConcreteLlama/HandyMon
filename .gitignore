@@ -1,0 +1,72 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# NSIS installer output (scripts/package-win.js)
+/dist
+
+# compiled native-interop assemblies (built from native-src/*.cs by
+# scripts/compile-native.js — predev/prebuild npm hooks, never committed)
+/native
+
+# scheduled-task XML backups made before testing the packaged installer
+/handymon-task-backup.xml
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# env files (can opt-in for committing if needed)
+.env*
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+*.db
+*.db-journal
+
+temp
+log.txt
+*.log
+
+# working planning docs — process/design notes, not docs that document the
+# current system (those live in docs/ directly and stay tracked)
+/docs/plans/
+/plans/
+
+# Claude Code local-machine state — not shared project config (unlike
+# .claude/launch.json, which stays tracked)
+/.claude/settings.local.json
+/.claude/scheduled_tasks.lock
+/.claude/worktrees/
+
+# Claude Code auto-memory — session notes, not part of the app
+/memory/

@@ -1,0 +1,1 @@
+export const AUDIO_DEVICES_QUERY_KEY = 'audio-devices';
