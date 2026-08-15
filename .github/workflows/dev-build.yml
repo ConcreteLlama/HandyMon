@@ -1,0 +1,46 @@
+name: Dev Build
+
+# Manual, on-demand build for testing the packaging pipeline itself, or for
+# handing someone a testable installer without cutting a real release.
+# Trigger it from the Actions tab -> Dev Build -> Run workflow, choosing
+# whichever branch you want built (defaults to development).
+#
+# Deliberately does NOT create a GitHub Release or a tag — the installer is
+# attached to the workflow run as a downloadable artifact instead, so dev
+# builds never show up on the public Releases page. The installer itself is
+# also visibly labelled as a dev build (window title, Add/Remove Programs
+# entry, filename) via HANDYMON_DEV_BUILD_LABEL — see scripts/package-win.js.
+on:
+  workflow_dispatch: {}
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Compute dev build label
+        id: label
+        shell: bash
+        run: echo "label=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Install NSIS
+        run: choco install nsis -y
+
+      - name: npm ci
+        run: npm ci
+
+      - name: Build installer (dev build)
+        env:
+          HANDYMON_DEV_BUILD_LABEL: ${{ steps.label.outputs.label }}
+        run: npm run package:win
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: HandyMon-Setup-dev-${{ steps.label.outputs.label }}
+          path: dist/*.exe
+          retention-days: 14

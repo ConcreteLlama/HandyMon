@@ -24,6 +24,17 @@ const BUILD_DIR = process.env.HANDYMON_BUILD_DIR || 'C:\\HandyMon-build';
 const DIST_DIR = path.join(REPO_ROOT, 'dist');
 const { version } = require(path.join(REPO_ROOT, 'package.json'));
 
+// Set by dev-build.yml (workflow_dispatch) to a short commit SHA — labels the
+// installer as a dev build everywhere a user would see it (filename, window
+// title, Add/Remove Programs entry) without forking the install location,
+// registry key, or scheduled task name, so each new dev build still cleanly
+// overwrites the last one in place rather than piling up separate installs.
+// Unset for a real release build (release.yml, or plain local `npm run
+// package:win`), which behaves exactly as before.
+const DEV_BUILD_LABEL = process.env.HANDYMON_DEV_BUILD_LABEL || '';
+const displayVersion = DEV_BUILD_LABEL ? `dev-${DEV_BUILD_LABEL}` : version;
+const devSuffix = DEV_BUILD_LABEL ? ` (DEV BUILD ${DEV_BUILD_LABEL})` : '';
+
 // Optional bundled tools (LibreHardwareMonitor + PawnIO, PresentMon) — staged
 // OUTSIDE BUILD_DIR so the installer's main `File /r "${STAGE_DIR}\*.*"` never
 // picks them up; the NSIS components page copies from here itself, only when
@@ -293,15 +304,16 @@ function resolveNodeExe() {
 }
 
 function buildNsiScript() {
-  const outFile = path.join(DIST_DIR, `HandyMon-Setup-${version}.exe`);
+  const outFile = path.join(DIST_DIR, `HandyMon-Setup-${displayVersion}.exe`);
   return `
 !define APP_NAME "HandyMon"
-!define APP_VERSION "${version}"
+!define APP_VERSION "${displayVersion}"
+!define APP_DEV_SUFFIX "${devSuffix}"
 !define STAGE_DIR "${BUILD_DIR}"
 !define OPTIONAL_DIR "${OPTIONAL_DIR}"
 !define LHM_PORT "${LHM_BUNDLED_PORT}"
 
-Name "\${APP_NAME}"
+Name "\${APP_NAME}\${APP_DEV_SUFFIX}"
 OutFile "${outFile}"
 InstallDir "$PROGRAMFILES64\\\${APP_NAME}"
 RequestExecutionLevel admin
@@ -461,7 +473,7 @@ Section "-Core" SecCore
 
   WriteUninstaller "$INSTDIR\\Uninstall.exe"
 
-  WriteRegStr HKLM "Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\\${APP_NAME}" "DisplayName" "\${APP_NAME}"
+  WriteRegStr HKLM "Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\\${APP_NAME}" "DisplayName" "\${APP_NAME}\${APP_DEV_SUFFIX}"
   WriteRegStr HKLM "Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\\${APP_NAME}" "UninstallString" "$INSTDIR\\Uninstall.exe"
   WriteRegStr HKLM "Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\\${APP_NAME}" "InstallLocation" "$INSTDIR"
   WriteRegStr HKLM "Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\\${APP_NAME}" "DisplayVersion" "\${APP_VERSION}"
@@ -728,7 +740,7 @@ function compile() {
   log(`Compiling installer with ${makensis}...`);
   execFileSync(makensis, [nsiPath], { stdio: 'inherit' });
 
-  log(`Done: dist/HandyMon-Setup-${version}.exe`);
+  log(`Done: dist/HandyMon-Setup-${displayVersion}.exe`);
 }
 
 (async () => {

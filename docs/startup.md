@@ -103,3 +103,13 @@ schtasks /create /xml handymon-task-backup.xml /tn "HandyMon" /f
 ```
 
 **Elevation confirmation**: the installer shows an explicit Yes/No dialog before registering the task, explaining why elevation is needed — the generic Windows UAC prompt alone doesn't explain what's actually being changed.
+
+## Release Pipeline (GitHub Actions)
+
+Branching model: `development` is the everyday working branch (and the repo's default branch on GitHub); `main` is release-only — nothing lands there except a deliberate merge from `development`, and that merge is what triggers a release. Bump `package.json`'s `version` as part of preparing a release, before merging to `main` — it's the single source of truth for the release tag and installer filename.
+
+**`.github/workflows/release.yml`** — triggered on push to `main`. Reads the version from `package.json`, skips the whole build if a release for `vX.Y.Z` already exists (so re-merging or re-running is a safe no-op, not a clobber), otherwise installs NSIS (`choco install nsis -y`), runs `npm run package:win` exactly as locally, and publishes a GitHub Release tagged `vX.Y.Z` with `dist/HandyMon-Setup-X.Y.Z.exe` attached (`gh release create ... --generate-notes`).
+
+**`.github/workflows/dev-build.yml`** — manual only (`workflow_dispatch`, run from the Actions tab against any branch). Same build steps, but sets `HANDYMON_DEV_BUILD_LABEL` (short commit SHA) so `scripts/package-win.js` visibly labels the build as a dev build everywhere a user would see it — installer filename (`HandyMon-Setup-dev-<sha>.exe`), the NSIS window title, and the Add/Remove Programs `DisplayName` all get a `(DEV BUILD <sha>)` suffix — while install path, registry key, and scheduled task name stay unchanged (`HandyMon`), so repeated dev builds overwrite the previous one in place rather than piling up separate installs. The finished installer is uploaded as a workflow-run **artifact**, not a GitHub Release — it never appears on the public Releases page. Useful both for testing the packaging pipeline itself on a clean CI machine and for handing someone a testable build without cutting a real release.
+
+Both workflows run on `windows-latest`, which ships PowerShell + .NET Framework (covers `compile-native.js`'s `Add-Type` C# compilation, no extra setup needed) but not NSIS, hence the `choco install nsis` step in each.

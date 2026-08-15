@@ -1,0 +1,69 @@
+name: Release
+
+# Release trigger: a push to main (i.e. development merged into main), per
+# docs/startup.md's branching model. Builds the Windows installer and
+# publishes it as a GitHub Release tagged from package.json's version.
+# Skips entirely if that version's release already exists, so re-merging or
+# re-running this workflow is a safe no-op instead of clobbering a release.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Read version from package.json
+        id: ver
+        shell: bash
+        run: echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+
+      - name: Check if this version was already released
+        id: check
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "v${{ steps.ver.outputs.version }}" --repo "${{ github.repository }}" >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Install NSIS
+        if: steps.check.outputs.exists == 'false'
+        run: choco install nsis -y
+
+      - name: npm ci
+        if: steps.check.outputs.exists == 'false'
+        run: npm ci
+
+      - name: Build installer
+        if: steps.check.outputs.exists == 'false'
+        run: npm run package:win
+
+      - name: Create GitHub Release
+        if: steps.check.outputs.exists == 'false'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "v${{ steps.ver.outputs.version }}" \
+            "dist/HandyMon-Setup-${{ steps.ver.outputs.version }}.exe" \
+            --repo "${{ github.repository }}" \
+            --title "v${{ steps.ver.outputs.version }}" \
+            --generate-notes
+
+      - name: Skip notice
+        if: steps.check.outputs.exists == 'true'
+        run: echo "v${{ steps.ver.outputs.version }} already has a release — skipping build. Bump package.json's version before merging to main to cut a new one."
