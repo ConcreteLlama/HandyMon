@@ -34,6 +34,14 @@ jobs:
       - name: npm ci
         run: npm ci
 
+      # See release.yml's equivalent step for why -- persists downloads
+      # across runs and across upstream downtime/removed releases.
+      - name: Cache bundled tool downloads (PresentMon/LHM/PawnIO)
+        uses: actions/cache@v4
+        with:
+          path: C:\HandyMon-package-cache
+          key: handymon-package-cache-${{ hashFiles('scripts/package-win.js') }}
+
       - name: Build installer (dev build)
         env:
           HANDYMON_DEV_BUILD_LABEL: ${{ steps.label.outputs.label }}

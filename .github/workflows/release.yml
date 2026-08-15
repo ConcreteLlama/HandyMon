@@ -48,6 +48,20 @@ jobs:
         if: steps.check.outputs.exists == 'false'
         run: npm ci
 
+      # Persists PresentMon/LibreHardwareMonitor/PawnIO downloads across runs
+      # (each run is a fresh VM, so package-win.js's own on-disk cache is
+      # otherwise useless in CI) -- also means a run isn't blocked by upstream
+      # GitHub Releases downtime, or a pinned release being pulled, once
+      # cached. Keyed on package-win.js's own content, since that's where the
+      # pinned download URLs/versions live -- bumping a pin invalidates the
+      # cache automatically.
+      - name: Cache bundled tool downloads (PresentMon/LHM/PawnIO)
+        if: steps.check.outputs.exists == 'false'
+        uses: actions/cache@v4
+        with:
+          path: C:\HandyMon-package-cache
+          key: handymon-package-cache-${{ hashFiles('scripts/package-win.js') }}
+
       - name: Build installer
         if: steps.check.outputs.exists == 'false'
         run: npm run package:win
