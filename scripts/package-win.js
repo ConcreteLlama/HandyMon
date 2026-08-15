@@ -191,6 +191,13 @@ function stageBundledTools() {
 // exactly this and doesn't have the issue.
 function copyDir(src, dest) {
   fs.mkdirSync(dest, { recursive: true });
+  // A genuinely empty directory (e.g. public/, which this app doesn't put
+  // anything in) isn't tracked by git at all, so it simply doesn't exist
+  // after a fresh clone — confirmed the hard way via the first CI run on a
+  // clean checkout, after `public/` had quietly sat empty-but-present on
+  // every dev machine that had ever run the app locally. Nothing to copy in
+  // that case; the mkdir above already created the (empty) destination.
+  if (!fs.existsSync(src)) return;
   // robocopy's exit codes are a bitmask where 0-7 all mean success (1 =
   // files copied, 2 = extra files in dest, etc.) — only 8+ is a real
   // failure. execFileSync throws on any non-zero code, so check manually.
