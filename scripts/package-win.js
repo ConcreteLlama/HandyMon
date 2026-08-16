@@ -396,6 +396,54 @@ Function PortPageLeave
   \${EndIf}
 FunctionEnd
 
+; Stop any already-running instance — needed both before a (re)install
+; overwrites files (node.exe is the actual running binary, and Windows won't
+; let File /r overwrite it while in use) and on uninstall (previously
+; missing entirely here — schtasks /delete only removes the task
+; *definition*, it doesn't stop an already-running instance, confirmed live
+; 2026-08-16: uninstalling left node.exe running and still listening on its
+; port). Self-contained (reads the current port fresh from config.json
+; rather than depending on a caller-populated variable) so it's safe to call
+; from both contexts. schtasks /end should take the whole process tree down
+; via its Job Object, but launch-hidden.ps1's Start-Process child can escape
+; that tracking (observed in practice, not just theoretical) and keep
+; running/listening even after schtasks reports success. Two fallbacks: (1)
+; kill whatever's actually LISTENING on the configured port — the most
+; reliable signal since it doesn't depend on WMI being able to report
+; ExecutablePath for another elevated process (it often can't, even from an
+; elevated caller); (2) the CIM exe-path match as a second net for anything
+; not yet bound to a port. Both are harmless no-ops if nothing's running.
+;
+; NSIS compiles the installer and uninstaller as two separate binaries from
+; this one script, and a plain Call only resolves within the binary its
+; target Function was defined for — an uninstaller Section can only Call an
+; "un."-prefixed Function (confirmed via a real makensis compile error:
+; "Call must be used with function names starting with 'un.' in the
+; uninstall section", caught in local verification before this ever shipped
+; in a build). !macro/!insertmacro shares the body between both without
+; duplicating it.
+!macro StopRunningInstanceImpl
+  DetailPrint "Stopping any running HandyMon instance..."
+  nsExec::ExecToLog 'schtasks /end /tn "HandyMon"'
+  InitPluginsDir
+  FileOpen $1 "$PLUGINSDIR\\stop-existing.ps1" w
+  FileWrite $1 '$$port = 44558$\\r$\\n'
+  FileWrite $1 'try { $$c = Get-Content "$$env:LOCALAPPDATA\\HandyMon\\config.json" -Raw -Encoding UTF8 -ErrorAction Stop | ConvertFrom-Json; if ($$c.port) { $$port = $$c.port } } catch {}$\\r$\\n'
+  FileWrite $1 'Get-NetTCPConnection -State Listen -LocalPort $$port -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $$_.OwningProcess -Force -ErrorAction SilentlyContinue }$\\r$\\n'
+  FileWrite $1 'Get-CimInstance Win32_Process | Where-Object { $$_.Name -eq "node.exe" -and $$_.ExecutablePath -eq "$INSTDIR\\node.exe" } | ForEach-Object { Stop-Process -Id $$_.ProcessId -Force -ErrorAction SilentlyContinue }$\\r$\\n'
+  FileClose $1
+  nsExec::ExecToLog 'powershell -NoProfile -ExecutionPolicy Bypass -File "$PLUGINSDIR\\stop-existing.ps1"'
+  Sleep 1000
+!macroend
+
+Function StopRunningInstance
+  !insertmacro StopRunningInstanceImpl
+FunctionEnd
+
+Function un.StopRunningInstance
+  !insertmacro StopRunningInstanceImpl
+FunctionEnd
+
 ; Leading "-" hides this from the Components page and makes it mandatory —
 ; the core app itself, unlike the two bundled-tool sections below.
 Section "-Core" SecCore
@@ -404,26 +452,7 @@ Section "-Core" SecCore
   MessageBox MB_YESNO|MB_ICONQUESTION "HandyMon needs to register a Windows Scheduled Task that runs elevated (administrator rights) at every login — this is what lets it switch displays, audio devices, and fan profiles, which Windows requires elevation for.$\\r$\\n$\\r$\\nContinue with installation?" IDYES +2
   Abort
 
-  ; Stop any already-running instance before overwriting files — node.exe is
-  ; the actual running binary, and Windows won't let File /r overwrite it
-  ; while it's in use. schtasks /end should take the whole process tree down
-  ; via its Job Object, but launch-hidden.ps1's Start-Process child can escape
-  ; that tracking (observed in practice, not just theoretical) and keep
-  ; running/listening even after schtasks reports success. Two fallbacks:
-  ; (1) kill whatever's actually LISTENING on the previously-configured port —
-  ; this is the most reliable signal since it doesn't depend on WMI being able
-  ; to report ExecutablePath for another elevated process (it often can't,
-  ; even from an elevated caller); (2) the CIM exe-path match as a second net
-  ; for anything not yet bound to a port. Both are harmless no-ops on a fresh
-  ; install (nothing to find/stop).
-  DetailPrint "Stopping any running HandyMon instance..."
-  nsExec::ExecToLog 'schtasks /end /tn "HandyMon"'
-  FileOpen $1 "$PLUGINSDIR\\stop-existing.ps1" w
-  FileWrite $1 'Get-NetTCPConnection -State Listen -LocalPort $OldPortValue -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $$_.OwningProcess -Force -ErrorAction SilentlyContinue }$\\r$\\n'
-  FileWrite $1 'Get-CimInstance Win32_Process | Where-Object { $$_.Name -eq "node.exe" -and $$_.ExecutablePath -eq "$INSTDIR\\node.exe" } | ForEach-Object { Stop-Process -Id $$_.ProcessId -Force -ErrorAction SilentlyContinue }$\\r$\\n'
-  FileClose $1
-  nsExec::ExecToLog 'powershell -NoProfile -ExecutionPolicy Bypass -File "$PLUGINSDIR\\stop-existing.ps1"'
-  Sleep 1000
+  Call StopRunningInstance
 
   SetOutPath "$INSTDIR"
   File /r "\${STAGE_DIR}\\*.*"
@@ -688,6 +717,13 @@ Function LaunchApp
 FunctionEnd
 
 Section "Uninstall"
+  ; schtasks /delete below only removes the task *definition* — it does NOT
+  ; stop an already-running instance, so this has to happen first (confirmed
+  ; live 2026-08-16: without it, uninstalling left node.exe running and still
+  ; listening on its port, invisible in Task Manager's "HandyMon" grouping
+  ; since the task itself was already gone).
+  Call un.StopRunningInstance
+
   DetailPrint "Removing HandyMon scheduled task..."
   nsExec::ExecToLog 'schtasks /delete /tn "HandyMon" /f'
 
