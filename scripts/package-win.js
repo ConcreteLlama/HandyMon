@@ -214,21 +214,10 @@ function findMakensis() {
     return 'makensis.exe';
   } catch {}
 
-  // 2. Standard NSIS install location
+  // 2. Standard NSIS install location (also where CI's cached install lands
+  //    — see .github/workflows/*.yml's "Cache NSIS" step)
   const standard = 'C:\\Program Files (x86)\\NSIS\\makensis.exe';
   if (fs.existsSync(standard)) return standard;
-
-  // 3. electron-builder's own NSIS cache, if this machine still has one from
-  //    before electron-builder was dropped as a dependency — fragile, don't
-  //    rely on this long-term.
-  const cacheRoot = path.join(process.env.LOCALAPPDATA || '', 'electron-builder', 'Cache');
-  if (fs.existsSync(cacheRoot)) {
-    const nsisDirs = fs.readdirSync(cacheRoot).filter(d => d.startsWith('nsis-'));
-    for (const d of nsisDirs) {
-      const candidate = path.join(cacheRoot, d, fs.readdirSync(path.join(cacheRoot, d)).find(x => x.startsWith('nsis-')) || '', 'Bin', 'makensis.exe');
-      if (fs.existsSync(candidate)) return candidate;
-    }
-  }
 
   throw new Error(
     "makensis.exe not found. Install NSIS first: `winget install NSIS.NSIS`, " +

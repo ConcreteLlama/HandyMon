@@ -28,8 +28,17 @@ jobs:
         shell: bash
         run: echo "label=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
 
+      # See release.yml's equivalent step for why the version is pinned.
+      - name: Cache NSIS
+        id: nsis-cache
+        uses: actions/cache@v4
+        with:
+          path: C:\Program Files (x86)\NSIS
+          key: handymon-nsis-3.12.0
+
       - name: Install NSIS
-        run: choco install nsis -y
+        if: steps.nsis-cache.outputs.cache-hit != 'true'
+        run: choco install nsis --version=3.12.0 -y
 
       - name: npm ci
         run: npm ci

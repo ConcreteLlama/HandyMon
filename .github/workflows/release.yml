@@ -40,9 +40,19 @@ jobs:
             echo "exists=false" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Install NSIS
+      # Pinned (not "latest") so the cache key stays meaningful and a repeat
+      # build can't silently pick up a different makensis.exe than last time.
+      - name: Cache NSIS
         if: steps.check.outputs.exists == 'false'
-        run: choco install nsis -y
+        id: nsis-cache
+        uses: actions/cache@v4
+        with:
+          path: C:\Program Files (x86)\NSIS
+          key: handymon-nsis-3.12.0
+
+      - name: Install NSIS
+        if: steps.check.outputs.exists == 'false' && steps.nsis-cache.outputs.cache-hit != 'true'
+        run: choco install nsis --version=3.12.0 -y
 
       - name: npm ci
         if: steps.check.outputs.exists == 'false'
