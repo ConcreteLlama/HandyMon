@@ -30,6 +30,10 @@
 # scheduled-task XML backups made before testing the packaged installer
 /handymon-task-backup.xml
 
+# personal/one-off scripts (e.g. fresh-install test backup/restore) — not
+# part of the app, never committed
+/local/
+
 # misc
 .DS_Store
 *.pem

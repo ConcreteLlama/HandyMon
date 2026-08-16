@@ -22,7 +22,7 @@ export function CpuUsageCard() {
           )
         }
       >
-        OVERALL — {latest ? `${Math.round(latest.cpu.overall)}%` : '—'}
+        CPU OVERALL — {latest ? `${Math.round(latest.cpu.overall)}%` : '—'}
       </CardTitle>
       {!latest ? <GatheringPlaceholder /> : (
         <Box sx={chartFillSx(100)}>

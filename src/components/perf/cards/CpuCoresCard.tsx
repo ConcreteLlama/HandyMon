@@ -18,7 +18,7 @@ export function CpuCoresCard() {
   const pinned = isPinned(CARD_ID);
 
   if (!latest) return (
-    <CardShell cardId={CARD_ID}><CardTitle>PER CORE</CardTitle><GatheringPlaceholder /></CardShell>
+    <CardShell cardId={CARD_ID}><CardTitle>CPU PER CORE</CardTitle><GatheringPlaceholder /></CardShell>
   );
 
   const cores = latest.cpu.cores;
@@ -48,7 +48,7 @@ export function CpuCoresCard() {
       </Tooltip>
       <Box sx={{ px: 2, py: 1.5 }}>
         <Box sx={{ fontFamily: 'var(--font-display)', fontSize: '0.62rem', fontWeight: 600, letterSpacing: '0.1em', color: 'var(--text-dim)' }}>
-          PER CORE ({cores.length} logical)
+          CPU PER CORE ({cores.length} logical)
         </Box>
       </Box>
       <Box sx={{ px: 2, pb: 2, ...chartFillSx(Math.max(100, Math.min(180, cores.length * 5 + 60))) }}>
