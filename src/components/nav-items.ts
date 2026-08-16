@@ -20,10 +20,10 @@ export interface NavItem {
 // which section ids exist at all. A user's saved navOrder (AppConfig) only
 // ever reorders this list, via orderNavItems() below.
 export const NAV_ITEMS: NavItem[] = [
+  { id: 'perf',      label: 'Perf',      Icon: MonitorHeartIcon },
   { id: 'actions',   label: 'Actions',   Icon: ShortcutIcon },
   { id: 'output',    label: 'Output',    Icon: TvIcon },
   { id: 'gaming',    label: 'Gaming',    Icon: SportsEsportsIcon },
-  { id: 'perf',      label: 'Perf',      Icon: MonitorHeartIcon },
   { id: 'processes', label: 'Processes', Icon: MemoryIcon },
   { id: 'system',    label: 'System',    Icon: TuneIcon },
   { id: 'keyboard',  label: 'Keyboard',  Icon: KeyboardIcon },
